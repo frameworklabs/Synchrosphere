@@ -4,7 +4,7 @@ A Swift framework to control Sphero robots in a synchronous reactive style.
 
 ## About
 
-[Sphero](https://sphero.com) robots can be wirelessly controlled and observed from an external computer by sending and receiving Bluetooth messges. Synchrosphere provides an API to do so from a Mac or iOS device in a synchronous reactive manner via the embedded synchronous Swift DSL [Pappe (https://github.com/frameworklabs/Pappe). This programming style is especially helpful in robotics as it simplifies the coding of concurrent tasks in a safe manner, as synchronization between tasks is deterministic. This quality also enables sound preemption, which is also important in robotics where preconditions needs to be checked and handled constantly.
+[Sphero](https://sphero.com) robots can be wirelessly controlled and observed from an external computer by sending and receiving Bluetooth messges. Synchrosphere provides an API to do so from a Mac or iOS device in a synchronous reactive manner via the embedded synchronous Swift DSL [Pappe](https://github.com/frameworklabs/Pappe). This programming style is especially helpful in robotics as it simplifies the coding of concurrent tasks in a safe manner, as synchronization between tasks is deterministic. This quality also enables sound preemption, which is also important in robotics where preconditions needs to be checked and handled constantly.
 
 In addition, this project shows how synchronous reactive programming can help to turn delegate based callback APIs - as common for Apple frameworks - back into structured code to simplify their usage.
 
