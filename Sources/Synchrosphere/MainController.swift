@@ -160,7 +160,9 @@ final class MainController: SyncsController {
                     }
                     
                     // Disconnect.
-                    run (name.DisconnectPeripheral_, [])
+                    `if` { self.peripheralController.peripheral != nil } then: {
+                        run (name.DisconnectPeripheral_, [])
+                    }
                     
                     exec {
                         self.stopRequested = false
