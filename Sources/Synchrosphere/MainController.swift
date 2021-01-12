@@ -161,6 +161,12 @@ final class MainController: SyncsController {
                     
                     // Disconnect.
                     `if` { self.peripheralController.peripheral != nil } then: {
+                        
+                        // Wait for some short time so that sleep request will be processed.
+                        exec { self.timerController.startTimer() }
+                        run (Syncs.WaitMilliseconds, [500])
+                        exec { self.timerController.stopTimer() }
+
                         run (name.DisconnectPeripheral_, [])
                     }
                     
