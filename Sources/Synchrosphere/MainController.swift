@@ -160,12 +160,12 @@ final class MainController: SyncsController {
                     }
                     
                     // Disconnect.
-                    `if` { self.peripheralController.peripheral != nil } then: {
+                    `if` { self.centralManagerController.isBluetoothAvailable && self.centralManagerController.isPeripheralConnected } then: {
                         
                         // Wait for some short time so that sleep request will be processed.
                         exec { self.timerController.startTimer() }
+                        `defer` { self.timerController.stopTimer() }
                         run (Syncs.WaitMilliseconds, [500])
-                        exec { self.timerController.stopTimer() }
 
                         run (name.DisconnectPeripheral_, [])
                     }
