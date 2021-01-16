@@ -153,6 +153,16 @@ public struct SyncsControllerConfig {
     /// Typically, you assign a callback function to know at least when the controllers main activity has ended.
     public var stateDidChangeCallback: ((SyncsControllerState) -> Void)?
     
+    /// This optional callback gets called before each tick is processed by the synchronous engine.
+    ///
+    /// It can be used to reset or prepare environmental state.
+    public var willTickCallback: (() -> Void)?
+
+    /// This optional callback gets called after each tick was processed by the synchronous engine.
+    ///
+    /// It can be used to reset environmental state or prepare it for the next tick.
+    public var didTickCallback: (() -> Void)?
+
     /// Specifies the queue the controller should run on.
     ///
     /// All APIs of a `SyncsController` (including `start` and  `stop` or accessing its `state`) must be called from the

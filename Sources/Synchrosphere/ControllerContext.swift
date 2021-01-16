@@ -60,7 +60,11 @@ final class ControllerContext: SyncsControllerContext, LoggingProviderAccessor {
     func tick() {
         dispatchPrecondition(condition: .onQueue(config.queue ?? DispatchQueue.main))
         
+        config.willTickCallback?()
+        
         try! processor.tick([], [])
+
+        config.didTickCallback?()
 
         if stateDidChange {
             if isLogEnabled(for: .info) {
