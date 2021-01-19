@@ -20,6 +20,8 @@ When creating a `SyncsController` you provide a configuration of type `SyncsConf
 
 Finally, call `start()` on the created controller to start the scanning, activation and control of the robot. If you want to emergency stop the robot (or stop a lengthy scanning process ) call `stop()` any time.
 
+For a usage of the Synchrosphere framework, see also the accompanying project [SynchrosphereDemo](https://github.com/frameworklabs/SynchrosphereDemo) which provides a UI application to select different robot control demos.
+
 ## Example
 
 Let's create a Sphero Mini controller which moves the robot in a rectangular loop back to its starting spot while blinking green as long as it moves.
