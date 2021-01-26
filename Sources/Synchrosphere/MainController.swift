@@ -4,7 +4,7 @@
 import Pappe
 
 /// The class which orchestrates the control of the robot; delegates to other controllers for specific tasks.
-final class MainController: SyncsController {
+final class MainController : SyncsController {
     
     private let context_: ControllerContext
     private var startRequested = false
@@ -134,7 +134,7 @@ final class MainController: SyncsController {
                                 run (Syncs.WaitMilliseconds, [200])
                                 run (Syncs.SetMainLED, [SyncsColor.black])
 
-                                // Call users Mail activity - either with battery monitor or directly.
+                                // Call users Main activity - either with battery monitor or directly.
                                 `if` { self.context.config.batteryCheckTicks > 0 } then: {
                                     run (name.BatteryMonitoringMainExecutor_, [])
                                 } else: {

@@ -5,7 +5,7 @@ import Pappe
 import CoreBluetooth
 
 /// Controls the communication with a peripheral; implements the `Endpoint` abstraction.
-final class PeripheralController: NSObject, CBPeripheralDelegate, Endpoint, LoggingProviderAccessor {
+final class PeripheralController : NSObject, CBPeripheralDelegate, Endpoint, LoggingProviderAccessor {
     
     private let context: ControllerContext
     var peripheral: CBPeripheral! {

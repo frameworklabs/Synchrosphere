@@ -12,7 +12,7 @@ public enum SyncsDeviceSelector {
 }
 
 /// Provides information about the progress of a controller and its controlled robot.
-public struct SyncsControllerState: OptionSet {
+public struct SyncsControllerState : OptionSet {
     public let rawValue: Int
     
     /// Public constructor to allow client code to add additional states.
@@ -51,7 +51,7 @@ public struct SyncsControllerState: OptionSet {
     public static let isBatteryCritical = SyncsControllerState(rawValue: 1 << 9)
 }
 
-extension SyncsControllerState: CustomStringConvertible {
+extension SyncsControllerState : CustomStringConvertible {
     public var description: String {
         var buf = ""
         func add(_ state: Self, _ msg: String) {
@@ -73,7 +73,7 @@ extension SyncsControllerState: CustomStringConvertible {
 }
 
 /// A categorization for log messages.
-public enum SyncsLogLevel: Comparable {
+public enum SyncsLogLevel : Comparable {
     
     /// Provides Informative messages about how the robot is commanded.
     case info
@@ -203,7 +203,7 @@ public enum SyncsBatteryState : UInt8 {
 }
 
 /// Type used when specifying the robots main LED  color in the `setMainLED` API.
-public struct SyncsColor {
+public struct SyncsColor : Hashable {
     
     public static let black = SyncsColor()
     public static let white = SyncsColor(red:0xff, green: 0xff, blue: 0xff)
@@ -223,7 +223,7 @@ public struct SyncsColor {
     }
 }
 
-extension SyncsColor: CustomStringConvertible {
+extension SyncsColor : CustomStringConvertible {
     public var description: String {
         return "r: \(red) g: \(green) b: \(blue)"
     }
@@ -245,7 +245,7 @@ public enum SyncsDir: UInt8 {
 public typealias SyncsBrightness = UInt8
 
 /// The set of supported sensors on the robot.
-public struct SyncsSensors: OptionSet {
+public struct SyncsSensors : OptionSet {
     public let rawValue: Int
     
     public init(rawValue: Int) {
@@ -288,7 +288,7 @@ public struct SyncsSample {
     public static let unset = SyncsSample(timestamp: 0, sensors: [], x: 0, y: 0, vx: 0, vy: 0, ax: 0, ay: 0, yaw: 0)
 }
 
-extension SyncsSample: CustomStringConvertible {
+extension SyncsSample : CustomStringConvertible {
     public var description: String {
         var result = ""
         if sensors.contains(.location) {
@@ -328,7 +328,7 @@ public protocol SyncsRequests {
 }
 
 /// Provides access to information - like the initial config - to  the activities of a controller.
-public protocol SyncsControllerContext: SyncsLogging {
+public protocol SyncsControllerContext : SyncsLogging {
     
     /// Access to the inital config used on construction of the controller.
     var config: SyncsControllerConfig { get }

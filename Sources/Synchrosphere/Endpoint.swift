@@ -6,7 +6,7 @@ import Foundation // for Data
 // MARK: - Endpoint helper types
 
 /// The different functional categories within a spehro robot.
-enum Device: UInt8 {
+enum Device : UInt8 {
     case power = 0x13
     case io = 0x1a
     case drive = 0x16
@@ -20,7 +20,7 @@ protocol Command {
 }
 
 /// The commands possible on the power device.
-enum PowerCommand: UInt8, Command {
+enum PowerCommand : UInt8, Command {
     case sleep = 0x01
     case wake = 0x0D
     case getBatteryState = 0x17
@@ -32,7 +32,7 @@ enum PowerCommand: UInt8, Command {
 }
 
 /// The commands possible on the io device.
-enum IOCommand: UInt8, Command {
+enum IOCommand : UInt8, Command {
     case setLED = 0x0e
 
     var device: Device {
@@ -41,7 +41,7 @@ enum IOCommand: UInt8, Command {
 }
 
 /// The commands possible on the drive device.
-enum DriveCommand: UInt8, Command {
+enum DriveCommand : UInt8, Command {
     case resetHeading = 0x06
     case roll = 0x07
 
@@ -51,7 +51,7 @@ enum DriveCommand: UInt8, Command {
 }
 
 /// The commands possible on the sensor device.
-enum SensorCommand: UInt8, Command {
+enum SensorCommand : UInt8, Command {
     case setStreaming = 0x00
     case resetLocator = 0x13
     case sensorData = 0x02
@@ -77,7 +77,7 @@ extension Device {
 }
 
 /// The possible errors reported from a robot on a wrong request.
-enum RequestError: UInt8, Swift.Error {
+enum RequestError : UInt8, Swift.Error {
     case success = 0x00
     case badDeviceID = 0x01
     case badCommandID = 0x02
@@ -98,7 +98,7 @@ typealias Response = Result<Data, RequestError>
 typealias ResponseHandler = (Response) -> Void
 
 /// Identifies a request made to the robot; used to correlate responses with requests.
-struct RequestID: Hashable {
+struct RequestID : Hashable {
     let command: Command
     let sequenceNr: UInt8
 
@@ -116,7 +116,7 @@ struct RequestID: Hashable {
 // MARK: - Endpoint type
 
 /// An abstraction to communicate with a robot.
-protocol Endpoint: SyncsLogging {
+protocol Endpoint : SyncsLogging {
     func send(_ command: Command, with data: [UInt8]) -> RequestID
     func sendOneway(_ command: Command, with data: [UInt8])
     func hasResponse(for requestID: RequestID, handler: ResponseHandler?) -> Bool
@@ -159,7 +159,7 @@ extension Endpoint {
 }
 
 /// Errors thrown when parsing a `Response` fails.
-enum ParseError: Error {
+enum ParseError : Error {
     case wrongPayloadSize
     case unknownValue
 }
@@ -173,7 +173,7 @@ func parseGetBatteryStateResponse(_ response: Response) throws -> SyncsBatterySt
 }
 
 /// Encapsulates command and data needed to issue a set main led color  request.
-struct SetMainLEDRequest: Request {
+struct SetMainLEDRequest : Request {
     let command: Command = IOCommand.setLED
     let data: [UInt8]
     
@@ -183,7 +183,7 @@ struct SetMainLEDRequest: Request {
 }
 
 /// Encapsulates command and data needed to issue a set back led brightness  request.
-struct SetBackLEDRequest: Request {
+struct SetBackLEDRequest : Request {
     let command: Command = IOCommand.setLED
     let data: [UInt8]
     
@@ -193,7 +193,7 @@ struct SetBackLEDRequest: Request {
 }
 
 /// Encapsulates command and data needed to issue a roll  request.
-struct RollRequest: Request {
+struct RollRequest : Request {
     let command: Command = DriveCommand.roll
     let data: [UInt8]
     
@@ -271,7 +271,7 @@ func parseStreamedSampleResponse(_ response: Response, timestamp: UInt64, sensor
 }
 
 /// Encapsulates command and data needed to issue a start streaming request.
-struct StartSensorStreamingRequest: Request {
+struct StartSensorStreamingRequest : Request {
     let command: Command = SensorCommand.setStreaming
     let data: [UInt8]
     
@@ -283,7 +283,7 @@ struct StartSensorStreamingRequest: Request {
 }
 
 /// Encapsulates command and data needed to issue a stop streaming request.
-struct StopSensorStreamingRequest: Request {
+struct StopSensorStreamingRequest : Request {
     let command: Command = SensorCommand.setStreaming
     let data: [UInt8] = [0x00, 0x00, 0, 0x00, 0x00, 0x00, 0x00]
 }
@@ -291,7 +291,7 @@ struct StopSensorStreamingRequest: Request {
 // MARK: - Encoding/Decoding
 
 /// Names for the escaping encoding scheme.
-private enum Encoding: UInt8 {
+private enum Encoding : UInt8 {
     case ESC = 0xAB
     case SOP = 0x8D
     case EOP = 0xD8
@@ -307,7 +307,7 @@ private extension Data {
 }
 
 /// Flags used in the Data Protocol.
-private struct Flags: OptionSet {
+private struct Flags : OptionSet {
     let rawValue: UInt8
 
     static let isResponse = Flags(rawValue: 0b0000_0001)

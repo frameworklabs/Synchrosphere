@@ -5,7 +5,7 @@ import Pappe
 import Dispatch // for dispatchPrecondition
 
 /// The implementation of the `SyncsControllerContext` protocol.
-final class ControllerContext: SyncsControllerContext, LoggingProviderAccessor {
+final class ControllerContext : SyncsControllerContext, LoggingProviderAccessor {
         
     let config: SyncsControllerConfig
     var state: SyncsControllerState = []
@@ -17,7 +17,7 @@ final class ControllerContext: SyncsControllerContext, LoggingProviderAccessor {
     var processor: Processor!
     
     /// Provides the `SyncsLogging` protocol by delegating to the function optionally defined in the config or printing to stdout otherwise.
-    private class LoggingProvider: SyncsLogging {
+    private class LoggingProvider : SyncsLogging {
         private var logger: ((String, SyncsLogLevel) -> Void)!
         private let logLevel: SyncsLogLevel
 

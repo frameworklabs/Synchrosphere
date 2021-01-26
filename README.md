@@ -4,7 +4,7 @@ A Swift framework to control Sphero robots in a synchronous reactive style.
 
 ## About
 
-[Sphero](https://sphero.com) robots can be wirelessly controlled and observed from an external computer by sending and receiving Bluetooth messges. Synchrosphere provides an API to do so from a Mac or iOS device in a synchronous reactive manner via the embedded synchronous Swift DSL [Pappe](https://github.com/frameworklabs/Pappe). This programming style is especially helpful in robotics as it simplifies the coding of concurrent tasks in a safe manner, as synchronization between tasks is deterministic. This quality also enables sound preemption, which is another important concept in robotics where preconditions needs to be checked and handled constantly.
+[Sphero](https://sphero.com) robots can be wirelessly controlled and observed from an external computer by sending and receiving Bluetooth messges. Synchrosphere provides an API to do so from a Mac or iOS device in a synchronous reactive manner via the embedded imperative synchronous Swift DSL [Pappe](https://github.com/frameworklabs/Pappe). This programming style is especially helpful in robotics as it simplifies the coding of concurrent tasks in a safe manner, as synchronization between tasks is deterministic. This quality also enables sound preemption, which is another important concept in robotics where preconditions needs to be checked and handled constantly.
 
 In addition, this project shows how synchronous reactive programming can help to turn delegate based callback APIs - as common with Apple frameworks - back into structured code to simplify their usage.
 
@@ -54,7 +54,7 @@ The controller is created with a single activity named "Main". The `cobegin` con
 
 Within the trails, built-in activities to roll the robot, set its LED and wait for some time are called via the `run` statements. See the header docs for all provided activities and their parameters.
 
-Finally, the controller is started explicitly and runs until it finishes. Note that `start()` is asynchronous and returns before the robot control code has finished. This is also why the created controller variable `ctrl` needs to be assigned to variable with a long enought lifetime (i.e. probably not a local variable).
+Finally, the controller is started explicitly and runs until it finishes. Note that `start()` is asynchronous and returns before the robot control code has finished. This is also why the created controller variable `ctrl` needs to be assigned to a variable with a long enough lifetime (i.e. probably not a local variable).
 
 ## Limitations
 

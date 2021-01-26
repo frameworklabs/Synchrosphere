@@ -49,7 +49,7 @@ final class SpheroController {
                         self.context.logError("GetBatteryState failed with: \(error)")
                     }
                 } }
-                exit { val.state }
+                `return` { val.state }
             }
                    
             // MARK: IO

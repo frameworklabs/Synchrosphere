@@ -5,7 +5,7 @@ import Pappe
 import CoreBluetooth
 
 /// Provides methods and activities to control the bluetooth central manager.
-final class CentralManagerController: NSObject, CBCentralManagerDelegate {
+final class CentralManagerController : NSObject, CBCentralManagerDelegate {
 
     private let context: ControllerContext
     private let centralManager: CBCentralManager

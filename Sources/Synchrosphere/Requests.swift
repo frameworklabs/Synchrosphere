@@ -4,7 +4,7 @@
 /// Implementation of the `SyncsRequest` protocol.
 ///
 /// In addition to the methods defined in the protocol, some more request methods needed internally are provided here.
-final class Requests: SyncsRequests, SyncsLogging, LoggingProviderAccessor {
+final class Requests : SyncsRequests, SyncsLogging, LoggingProviderAccessor {
             
     let loggingProvider: SyncsLogging
     private var endpoint: Endpoint!
