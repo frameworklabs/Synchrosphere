@@ -164,7 +164,7 @@ enum ParseError : Error {
     case unknownValue
 }
 
-/// Tries to parse a `Response` into a  `SyncsBatteryState`.
+/// Tries to parse a `Response` into a `SyncsBatteryState`.
 func parseGetBatteryStateResponse(_ response: Response) throws -> SyncsBatteryState {
     let data = try response.get()
     guard data.count == 1 else { throw ParseError.wrongPayloadSize }
@@ -172,7 +172,7 @@ func parseGetBatteryStateResponse(_ response: Response) throws -> SyncsBatterySt
     return state
 }
 
-/// Encapsulates command and data needed to issue a set main led color  request.
+/// Encapsulates command and data needed to issue a set main led color request.
 struct SetMainLEDRequest : Request {
     let command: Command = IOCommand.setLED
     let data: [UInt8]
@@ -182,7 +182,7 @@ struct SetMainLEDRequest : Request {
     }
 }
 
-/// Encapsulates command and data needed to issue a set back led brightness  request.
+/// Encapsulates command and data needed to issue a set back led brightness request.
 struct SetBackLEDRequest : Request {
     let command: Command = IOCommand.setLED
     let data: [UInt8]
@@ -192,7 +192,7 @@ struct SetBackLEDRequest : Request {
     }
 }
 
-/// Encapsulates command and data needed to issue a roll  request.
+/// Encapsulates command and data needed to issue a roll request.
 struct RollRequest : Request {
     let command: Command = DriveCommand.roll
     let data: [UInt8]
@@ -381,7 +381,7 @@ struct Encoder {
     }
 }
 
-/// A class to decode  a byte-sequence  sent from the  robot into command and payload.
+/// A class to decode  a byte-sequence sent from the robot into command and payload.
 final class Decoder {
     private var buf: Data!
     

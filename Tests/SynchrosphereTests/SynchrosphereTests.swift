@@ -27,7 +27,7 @@ final class SynchrosphereTests: XCTestCase {
     }
     
     func testTimers() {
-        var config = SyncsControllerConfig()
+        var config = SyncsControllerConfig(deviceSelector: .anyMini)
         config.tickFrequency = 3
         let context = ControllerContext(config: config)
         let controller = TimerController(context: context)

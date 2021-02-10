@@ -7,7 +7,7 @@ import Dispatch // for DispatchQueue
 /// A way to specify which robot to select when scanning is started.
 public enum SyncsDeviceSelector {
     
-    /// Selects any Sphero Mini  around. Does *not* prevent a robot to be selected multiple times.
+    /// Selects any Sphero Mini around. Does *not* prevent a robot to be selected multiple times.
     case anyMini
 }
 
@@ -78,6 +78,9 @@ public enum SyncsLogLevel : Comparable {
     /// Provides Informative messages about how the robot is commanded.
     case info
     
+    /// A message the operator should take note of.
+    case note
+    
     /// Communicates error messages.
     case error
 }
@@ -90,7 +93,7 @@ public protocol SyncsLogging {
     /// - Note: If the message will be actually logged depends on the `logLevel` specified in the config.
     func log(_ message: String, as level: SyncsLogLevel)
     
-    /// Returns if logging is enabled for the given `level`.
+    /// Returns `true` if logging is enabled for the given `level`.
     func isLogEnabled(for level: SyncsLogLevel) -> Bool
 }
 
@@ -99,6 +102,11 @@ public extension SyncsLogging {
     /// Logs a `message` of category `.info`.
     func logInfo(_ message: String) {
         log(message, as: .info)
+    }
+
+    /// Logs a `message` of category `.note`.
+    func logNote(_ message: String) {
+        log(message, as: .note)
     }
 
     /// Logs a `message` of category `.error`.
@@ -113,7 +121,7 @@ public struct SyncsControllerConfig {
     /// Creates a default config to select the specified device.
     ///
     /// Use the setter methods of this struct to modify the default values of this config.
-    public init(deviceSelector: SyncsDeviceSelector = .anyMini) {
+    public init(deviceSelector: SyncsDeviceSelector) {
         self.deviceSelector = deviceSelector
     }
     
@@ -122,14 +130,15 @@ public struct SyncsControllerConfig {
     
     /// Specifies the minimal log level to be used.
     ///
-    /// When set to `info` (which is the default), both `info` as well as `error` messages will be logged.
+    /// When set to `info` (which is the default), `info`, `note` as well as `error` messages will be logged.
+    /// When set to `note`, both `note`and `error` messages will be logged.
     /// When set to `error` only `error` messages are logged.
     /// To completely silence log messages, provide a `logFunction` which discards all messages.
     public var logLevel: SyncsLogLevel = .info
     
-    /// Assign a function which parameters `message` and `level` to write log messages in a custom way.
+    /// Assign a function with the parameters `message` and `level` to write log messages in a custom way.
     ///
-    /// By default, log messages are written out with the `print` command. Assigning a custom function allows you
+    /// By default, log messages are written out with the `print` function. Assigning a custom function allows you
     /// to write log messages to a mesasge box in an UI or write it to a file. You should respect the `logLevel` config in this case.
     public var logFunction: ((_ message: String, _ level: SyncsLogLevel) -> Void)?
 
@@ -145,7 +154,7 @@ public struct SyncsControllerConfig {
     /// When the battery state is `low` or `critical`, the robot will stop the controllers main activity and get into a mode where it
     /// will blink red constantly. In this case you need to charge the robot and restart the controller.
     ///
-    /// Default value results in a check every minute (given a 10Hz `tickFrequency`). If you provide zero, no checks will be performed.
+    /// The default value results in a check every minute (given a 10Hz `tickFrequency`). If you provide zero, no checks will be performed.
     public var batteryCheckTicks = 600
     
     /// You can provide a callback function which will be called when the state of the controller changes.
@@ -185,7 +194,7 @@ public final class SyncsClock {
     /// Can be used in the `tick()` function as a start value.
     public internal(set) var counter: UInt64 = 0
     
-    /// Creates a downsampled the clock.
+    /// Creates a downsampled clock.
     ///
     /// - Parameter scale: a divider for the clock. A value of e.g. 2 will halve the frequency of the clock.
     /// - Parameter start: the `counter` value from which to start counting for this downsampled clock.
@@ -229,19 +238,19 @@ extension SyncsColor : CustomStringConvertible {
     }
 }
 
-/// Type used when specifying the robots speed in the `roll` or  `rollForSeconds` APIs.
+/// Type used when specifying the robots speed in the `Roll` or  `RollForSeconds` APIs.
 public typealias SyncsSpeed = UInt8
 
-/// Type used when specifying the robots heading  in the `roll` or  `rollForSeconds` APIs.
+/// Type used when specifying the robots heading  in the `Roll` or  `RollForSeconds` APIs.
 public typealias SyncsHeading = UInt16
 
-/// Type used when specifying the robots direction in the `roll` or  `rollForSeconds` APIs.
+/// Type used when specifying the robots direction in the `Roll` or  `RollForSeconds` APIs.
 public enum SyncsDir: UInt8 {
     case forward = 0x00
     case backward = 0x01
 }
 
-/// Type used when specifying the robots back LED brightness  in the `setBackLED`API.
+/// Type used when specifying the robots back LED brightness in the `SetBackLED`API.
 public typealias SyncsBrightness = UInt8
 
 /// The set of supported sensors on the robot.
@@ -315,7 +324,7 @@ public protocol SyncsRequests {
         
     // IO
 
-    /// Set the main LED back to the given `color`.
+    /// Set the main LED to the given `color`.
     func setMainLED(to color: SyncsColor)
     
     /// Set the brightness of the back LED.
@@ -327,7 +336,7 @@ public protocol SyncsRequests {
     func stopRoll(towards heading: SyncsHeading)
 }
 
-/// Provides access to information - like the initial config - to  the activities of a controller.
+/// Provides access to information - like the initial config - to the activities of a controller.
 public protocol SyncsControllerContext : SyncsLogging {
     
     /// Access to the inital config used on construction of the controller.
@@ -342,7 +351,7 @@ public protocol SyncsControllerContext : SyncsLogging {
     /// Un-asserts the given `state`.
     func clearState(_ state: SyncsControllerState)
     
-    // Returns whether the given `state` is currently asserted or not.
+    /// Returns whether the given `state` is currently asserted or not.
     func hasState(_ state: SyncsControllerState) -> Bool
 
     /// Access to the clock associated with the controller.
@@ -360,7 +369,7 @@ public protocol SyncsControllerContext : SyncsLogging {
 /// The representation and handle for a robot controller created via `makeController`.
 public protocol SyncsController {
     
-    /// The context associated with this controller providing access to data like its state as well as the robots API.
+    /// The context associated with this controller providing access to data like its state.
     var context: SyncsControllerContext { get }
     
     /// Needs to be called on a created controller to start the discovery, connection and controlling process.
@@ -370,14 +379,14 @@ public protocol SyncsController {
     ///
     /// Normally, the controller stops automatically when the main activity ends. Calling `stop` explicitly allows
     /// to stop a lengthy scanning attempt or bring the robot to an emergeny stop.
-    /// Regardless of  an automatic or manual stop, the robot motor is turned off and the robot put to sleep.
+    /// Regardless of stopping automatically or manually, the robot motor is turned off and the robot put to sleep.
     func stop()
 }
 
 /// The factory to create robot controllers.
 ///
 /// This is the main entrypoint into the Synchrosphere APIs. Call `makeController` to create a controller for the given config and
-/// activity builder. Then call `start`on the returned controller to begin robot oerpations.
+/// activity builder. Then call `start`on the returned controller to begin robot operations.
 public final class SyncsEngine {
     
     /// Creates an engine instance.
@@ -386,7 +395,7 @@ public final class SyncsEngine {
     public init() {
     }
 
-    /// Creates a robot controller with the given ` config` and activity `builder`.
+    /// Creates a robot controller with the given `config` and activity `builder`.
     ///
     /// Call this method to create a new controller for a Sphero robot with control code provided as synchronous
     /// [Pappe](https://github.com/frameworklabs/Pappe) activities.
@@ -408,22 +417,22 @@ public final class SyncsEngine {
     /// }
     /// controller.start()
     /// ```
-    /// This creates a controller - for some Sphero Mini around - which sets its main LED to red and then after a second to green before
+    /// This creates a controller - for some Sphero Mini around - which sets its main LED to red and then - after a second - to green before
     /// giving up control after another second.
     ///
     /// - Parameter config:  configuration information for the controller to be created.
     /// - Parameter builder: a closure to create a list of `Activity` objects (one of which must be named "Main").
-    /// - Parameter names:   an object which supports @dynamicMemberLookup to use dot notation instead of quotation marks.
+    /// - Parameter names:   an object which supports @dynamicMemberLookup to use dot notation instead of quotation marks for places where strings are needed.
     /// - Parameter context: a `SyncsControllerContext` which provides access to objects like the intial `config`,
     ///                      logging and the clock.
-    /// - Returns: a `SyncsController` instance used to start and stop the robot control. Keep this alive (e.g. by assigning it to
+    /// - Returns: a `SyncsController` instance used to start and stop the robot control code. Keep this alive (e.g. by assigning it to
     ///            an instance variable) for as long as you want to control the robot.
-    public func makeController(for config: SyncsControllerConfig = SyncsControllerConfig(), @ActivityBuilder code builder: (_ names: ID, _ context: SyncsControllerContext) -> [Activity]) -> SyncsController {
+    public func makeController(for config: SyncsControllerConfig, @ActivityBuilder code builder: (_ names: ID, _ context: SyncsControllerContext) -> [Activity]) -> SyncsController {
         MainController(config: config, builder: builder)
     }
 }
 
-/// Namespace for the names of the activities provided by Syncrhrosphere.
+/// Namespace for the names of the activities provided by Synchrosphere.
 public struct Syncs {
 
     // Clock
@@ -457,7 +466,7 @@ public struct Syncs {
     ///
     /// `activity GetBatteryState () -> SyncsBatteryState?`
     ///
-    /// - Returns  if successful the current `SyncsBatteryState` - nil otherwise.
+    /// - Returns if successful the current `SyncsBatteryState` - nil otherwise.
     public static let GetBatteryState = "SyncsGetBatteryState"
 
     // IO
@@ -478,7 +487,7 @@ public struct Syncs {
     
     // Drive
 
-    /// Activity to reset the yaw to opposite direction where the back LED would currently shine.
+    /// Activity to reset the yaw to the opposite direction where the back LED would currently shine.
     ///
     /// `activity ResetHeading ()`
     public static let ResetHeading = "SyncsResetHeading"
@@ -507,7 +516,7 @@ public struct Syncs {
     /// - Parameter seconds: the number of seconds to roll before it stops.
     public static let RollForSeconds = "SyncsRollForSeconds"
     
-    /// Activity to bring robot to a stop.
+    /// Activity to bring the robot to a stop.
     ///
     /// `activity StopRoll (heading: SyncsHeading)`
     ///
@@ -518,7 +527,7 @@ public struct Syncs {
     
     /// Activity to reset the locator.
     ///
-    /// The current position will be set as (0, 0) by this call.
+    /// The current position will be set to (0, 0) by this call.
     ///
     /// `activity ResetLocator ()`
     public static let ResetLocator = "SyncsResetLocator"

@@ -4,7 +4,7 @@ A Swift framework to control Sphero robots in a synchronous reactive style.
 
 ## About
 
-[Sphero](https://sphero.com) robots can be wirelessly controlled and observed from an external computer by sending and receiving Bluetooth messges. Synchrosphere provides an API to do so from a Mac or iOS device in a synchronous reactive manner via the embedded imperative synchronous Swift DSL [Pappe](https://github.com/frameworklabs/Pappe). This programming style is especially helpful in robotics as it simplifies the coding of concurrent tasks in a safe manner, as synchronization between tasks is deterministic. This quality also enables sound preemption, which is another important concept in robotics where preconditions needs to be checked and handled constantly.
+[Sphero](https://sphero.com) robots can be wirelessly controlled and observed from an external computer by sending and receiving Bluetooth messges. Synchrosphere provides an API to do so from a Mac or iOS device in a synchronous reactive manner via the embedded imperative synchronous Swift DSL [Pappe](https://github.com/frameworklabs/Pappe). This programming style is especially helpful in robotics as it simplifies the coding of concurrent tasks in a safe manner, due to deterministic synchronization between tasks. This quality also enables sound preemption, which is another important concept in robotics where preconditions needs to be checked and handled constantly.
 
 In addition, this project shows how synchronous reactive programming can help to turn delegate based callback APIs - as common with Apple frameworks - back into structured code to simplify their usage.
 
@@ -16,9 +16,9 @@ Start by importing this package into your project. Its dependency to Pappe will 
 
 Next, create a `SyncsController` in your code and assign it to an instance variable of your App - or some other place which lives long enough. 
 
-When creating a `SyncsController` you provide a configuration of type `SyncsConfiguration` and a closure which will build and return the activities to control the robot. One returned activity must be named "Main" and will be called as entrypoint once a robot conforming to the configuration was found and activated (see next step). When control returns from this main activity the robot is deactivated again.
+When creating a `SyncsController` you provide a configuration of type `SyncsControllerConfig` and a closure which will build and return the activities to control the robot. One returned activity must be named "Main" and will be called as entrypoint once a robot conforming to the configuration was found and activated (see next step). When control returns from this main activity the robot is deactivated again.
 
-Finally, call `start()` on the created controller to start the scanning, activation and control of the robot. If you want to emergency stop the robot (or stop a lengthy scanning process ) call `stop()` any time.
+Finally, call `start()` on the created controller to start the scanning, activation and control of the robot. If you want to emergency-stop the robot (or stop a lengthy scanning process ) call `stop()` any time.
 
 For a usage of the Synchrosphere framework, see also the accompanying project [SynchrosphereDemo](https://github.com/frameworklabs/SynchrosphereDemo) which provides a UI application to select different robot control demos.
 

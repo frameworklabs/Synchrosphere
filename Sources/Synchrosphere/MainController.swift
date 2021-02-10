@@ -94,7 +94,6 @@ final class MainController : SyncsController {
                             `defer` { self.context.clearState(.isConnected) }
                             // Unfortunately, we cant disconnect in defer as otherwise `requestSleep` will
                             // not be able to complete correctly. But putting device to sleep is more important here.
-                            //`defer` { self.centralManagerController.requestDisconnectPeripheral() }
                             
                             when { !self.centralManagerController.isPeripheralConnected } abort: {
                                 
@@ -141,7 +140,7 @@ final class MainController : SyncsController {
                                     run (name.Main, [])
                                 }
                                 
-                                // Stop device rolling and streaming data
+                                // Stop device rolling and streaming data.
                                 cobegin {
                                     strong {
                                         run (Syncs.StopRoll, [SyncsHeading(0)])
