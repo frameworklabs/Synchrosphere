@@ -24,7 +24,6 @@ enum PowerCommand : UInt8, Command {
     case sleep = 0x01
     case wake = 0x0D
     case getBatteryState = 0x17
-    case willSleep = 0x1a
 
     var device: Device {
         .power
@@ -54,7 +53,7 @@ enum DriveCommand : UInt8, Command {
 enum SensorCommand : UInt8, Command {
     case setStreaming = 0x00
     case resetLocator = 0x13
-    case sensorData = 0x02
+    case notifySensorData = 0x02
 
     var device: Device {
         return .sensor
@@ -62,16 +61,16 @@ enum SensorCommand : UInt8, Command {
 }
 
 extension Device {
-    func makeCommand(commandID: UInt8) -> Command {
+    func makeCommand(commandID: UInt8) -> Command? {
         switch self {
         case .power:
-            return PowerCommand(rawValue: commandID)!
+            return PowerCommand(rawValue: commandID)
         case .io:
-            return IOCommand(rawValue: commandID)!
+            return IOCommand(rawValue: commandID)
         case .drive:
-            return DriveCommand(rawValue: commandID)!
+            return DriveCommand(rawValue: commandID)
         case .sensor:
-            return SensorCommand(rawValue: commandID)!
+            return SensorCommand(rawValue: commandID)
         }
     }
 }
@@ -426,8 +425,9 @@ final class Decoder {
                 } else {
                     result = .success(data.subdata(in: 4..<data.count - 1))
                 }
-                let device = Device(rawValue: data[1])!
-                handler(device.makeCommand(commandID: data[2]), data[3], result)
+                guard let device = Device(rawValue: data[1]) else { return }
+                guard let command = device.makeCommand(commandID: data[2]) else { return }
+                handler(command, data[3], result)
             default:
                 buf.append(ch)
             }

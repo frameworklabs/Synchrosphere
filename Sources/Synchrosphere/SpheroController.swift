@@ -144,7 +144,7 @@ final class SpheroController {
                 await { self.endpoint.hasResponse(for: val.id) }
                 `defer` { self.context.requests_.stopSensorStreaming() }
                 `repeat` {
-                    await { self.context.clock.tick && self.endpoint.hasResponse(for: RequestID(command: SensorCommand.sensorData, sequenceNr: sensorDataSequenceNr)) { response in
+                    await { self.context.clock.tick && self.endpoint.hasResponse(for: RequestID(command: SensorCommand.notifySensorData, sequenceNr: sensorDataSequenceNr)) { response in
                         do {
                             let timestamp = self.context.clock.counter
                             let sensors: SyncsSensors = val.sensors
