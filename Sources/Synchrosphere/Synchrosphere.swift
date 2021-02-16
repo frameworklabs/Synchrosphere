@@ -245,13 +245,28 @@ public typealias SyncsSpeed = UInt8
 public typealias SyncsHeading = UInt16
 
 /// Type used when specifying the robots direction in the `Roll` or  `RollForSeconds` APIs.
-public enum SyncsDir: UInt8 {
+public enum SyncsDir : UInt8 {
     case forward = 0x00
     case backward = 0x01
 }
 
 /// Type used when specifying the robots back LED brightness in the `SetBackLED`API.
 public typealias SyncsBrightness = UInt8
+
+/// Type used when specifying the desired auto-calibration in the `SetLocatorFlags` API.
+public struct SyncsLocatorFlags : OptionSet {
+    public let rawValue: UInt8
+    
+    public init(rawValue: UInt8) {
+        self.rawValue = rawValue
+    }
+  
+    /// Resets the orientation on the next `ResetHeading` call.
+    public static let resetOrientation = SyncsLocatorFlags([])
+    
+    /// Maintains the orientation from robot startup.
+    public static let maintainOrientation = SyncsLocatorFlags(rawValue: 0x01)
+}
 
 /// The set of supported sensors on the robot.
 public struct SyncsSensors : OptionSet {
@@ -300,11 +315,11 @@ public struct SyncsSample {
 extension SyncsSample : CustomStringConvertible {
     public var description: String {
         var result = ""
-        if sensors.contains(.location) {
-            result += "x: \(x) y: \(y) "
-        }
         if sensors.contains(.yaw) {
             result += "yaw: \(yaw) "
+        }
+        if sensors.contains(.location) {
+            result += "x: \(x) y: \(y) "
         }
         if sensors.contains(.velocity) {
             result += "vx: \(vx) vy: \(vy) "
@@ -531,6 +546,15 @@ public struct Syncs {
     ///
     /// `activity ResetLocator ()`
     public static let ResetLocator = "SyncsResetLocator"
+    
+    /// Activity to set the locator flags.
+    ///
+    /// Use this to set the desired auto calibration mode.
+    ///
+    /// `activity SetLocatorFlags (flags: SyncsLocatorFlags)`
+    ///
+    /// - Parameter flags: the flags to set for the locator.
+    public static let SetLocatorFlags = "SyncsSetLocatorFlags"
     
     /// Activty to stream sensor data from the robot.
     ///

@@ -131,7 +131,17 @@ final class SpheroController {
                 }
                 await { self.endpoint.hasResponse(for: val.id) }
             }
-            
+
+            activity (Syncs.SetLocatorFlags, [name.flags]) { val in
+                exec {
+                    let flags: SyncsLocatorFlags = val.flags
+                    
+                    self.context.logInfo("SetLocatorFlags \(flags)")
+                    val.id = self.endpoint.send(SensorCommand.setLocatorFlags, with: [flags.rawValue])
+                }
+                await { self.endpoint.hasResponse(for: val.id) }
+            }
+
             activity (Syncs.SensorStreamer, [name.frequency, name.sensors], [name.sample]) { val in
                 exec {
                     let frequency: Int = val.frequency

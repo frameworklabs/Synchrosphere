@@ -53,6 +53,7 @@ enum DriveCommand : UInt8, Command {
 enum SensorCommand : UInt8, Command {
     case setStreaming = 0x00
     case resetLocator = 0x13
+    case setLocatorFlags = 0x17
     case notifySensorData = 0x02
 
     var device: Device {
