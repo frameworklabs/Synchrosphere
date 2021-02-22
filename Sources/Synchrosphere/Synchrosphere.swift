@@ -47,7 +47,7 @@ public struct SyncsControllerState : OptionSet {
     /// Asserted when a low battery condition is detected.
     public static let isBatteryLow = SyncsControllerState(rawValue: 1 << 8)
     
-    /// Asserted when a criticial battery condition is detected (`isBatteryLow` is cleared in this case).
+    /// Asserted when a critical battery condition is detected (`isBatteryLow` is cleared in this case).
     public static let isBatteryCritical = SyncsControllerState(rawValue: 1 << 9)
 }
 
@@ -131,7 +131,7 @@ public struct SyncsControllerConfig {
     /// Specifies the minimal log level to be used.
     ///
     /// When set to `info` (which is the default), `info`, `note` as well as `error` messages will be logged.
-    /// When set to `note`, both `note`and `error` messages will be logged.
+    /// When set to `note`, both `note` and `error` messages will be logged.
     /// When set to `error` only `error` messages are logged.
     /// To completely silence log messages, provide a `logFunction` which discards all messages.
     public var logLevel: SyncsLogLevel = .info
@@ -139,7 +139,7 @@ public struct SyncsControllerConfig {
     /// Assign a function with the parameters `message` and `level` to write log messages in a custom way.
     ///
     /// By default, log messages are written out with the `print` function. Assigning a custom function allows you
-    /// to write log messages to a mesasge box in an UI or write it to a file. You should respect the `logLevel` config in this case.
+    /// to write log messages to a message box in an UI or write it to a file. You should respect the `logLevel` config in this case.
     public var logFunction: ((_ message: String, _ level: SyncsLogLevel) -> Void)?
 
     /// Specifies the frequency of the clock.
@@ -183,7 +183,7 @@ public struct SyncsControllerConfig {
     public var imports: [Module] = []
 }
 
-/// Allows to detect if a step was due to a fireing timer.
+/// Allows to detect if a step was due to a firing timer.
 public final class SyncsClock {
     
     /// Returns `true` if the current step was triggered by the timer. `false` if it was triggered by some other event.
@@ -354,7 +354,7 @@ public protocol SyncsRequests {
 /// Provides access to information - like the initial config - to the activities of a controller.
 public protocol SyncsControllerContext : SyncsLogging {
     
-    /// Access to the inital config used on construction of the controller.
+    /// Access to the initial config used on construction of the controller.
     var config: SyncsControllerConfig { get }
     
     /// Access to the current state of the controller.
@@ -393,15 +393,15 @@ public protocol SyncsController {
     /// Can be called on a started controller to stop it at any time.
     ///
     /// Normally, the controller stops automatically when the main activity ends. Calling `stop` explicitly allows
-    /// to stop a lengthy scanning attempt or bring the robot to an emergeny stop.
+    /// to stop a lengthy scanning attempt or bring the robot to an emergency stop.
     /// Regardless of stopping automatically or manually, the robot motor is turned off and the robot put to sleep.
     func stop()
 }
 
 /// The factory to create robot controllers.
 ///
-/// This is the main entrypoint into the Synchrosphere APIs. Call `makeController` to create a controller for the given config and
-/// activity builder. Then call `start`on the returned controller to begin robot operations.
+/// This is the main entry-point into the Synchrosphere APIs. Call `makeController` to create a controller for the given config and
+/// activity builder. Then call `start` on the returned controller to begin robot operations.
 public final class SyncsEngine {
     
     /// Creates an engine instance.
@@ -438,7 +438,7 @@ public final class SyncsEngine {
     /// - Parameter config:  configuration information for the controller to be created.
     /// - Parameter builder: a closure to create a list of `Activity` objects (one of which must be named "Main").
     /// - Parameter names:   an object which supports @dynamicMemberLookup to use dot notation instead of quotation marks for places where strings are needed.
-    /// - Parameter context: a `SyncsControllerContext` which provides access to objects like the intial `config`,
+    /// - Parameter context: a `SyncsControllerContext` which provides access to objects like the initial `config`,
     ///                      logging and the clock.
     /// - Returns: a `SyncsController` instance used to start and stop the robot control code. Keep this alive (e.g. by assigning it to
     ///            an instance variable) for as long as you want to control the robot.
@@ -556,7 +556,7 @@ public struct Syncs {
     /// - Parameter flags: the flags to set for the locator.
     public static let SetLocatorFlags = "SyncsSetLocatorFlags"
     
-    /// Activty to stream sensor data from the robot.
+    /// Activity to stream sensor data from the robot.
     ///
     /// `activity SensorStreamer (frequency: Int, sensors: SyncsSensors) (sample: SyncsSample)`
     ///
