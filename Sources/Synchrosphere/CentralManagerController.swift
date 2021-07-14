@@ -24,7 +24,7 @@ final class CentralManagerController : NSObject, CBCentralManagerDelegate {
             activity (name.ScanForPeripheral_, [name.deviceSelector]) { val in
                 exec  {
                     self.context.logInfo("scanning...")
-                    self.centralManager.scanForPeripherals(withServices: [.spheroService])
+                    self.centralManager.scanForPeripherals(withServices: [.apiService])
                 }
                 `defer` {
                     self.context.logInfo("stop scanning")
@@ -96,6 +96,7 @@ final class CentralManagerController : NSObject, CBCentralManagerDelegate {
 private extension SyncsDeviceSelector {
     var namePrefix: String {
         switch self {
+        case .anyRVR: return "RV-"
         case .anyMini: return "SM-"
         }
     }

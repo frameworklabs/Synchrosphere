@@ -6,7 +6,10 @@ import Dispatch // for DispatchQueue
 
 /// A way to specify which robot to select when scanning is started.
 public enum SyncsDeviceSelector {
-    
+
+    /// Selects any Sphero RVR around. Does *not* prevent a robot to be selected multiple times.
+    case anyRVR
+
     /// Selects any Sphero Mini around. Does *not* prevent a robot to be selected multiple times.
     case anyMini
 }
@@ -230,12 +233,46 @@ public struct SyncsColor : Hashable {
         self.green = green
         self.blue = blue
     }
+    
+    public init(brightness: SyncsBrightness) {
+        self.init(red: brightness, green: brightness, blue: brightness)
+    }
 }
 
 extension SyncsColor : CustomStringConvertible {
     public var description: String {
         return "r: \(red) g: \(green) b: \(blue)"
     }
+}
+
+/// Type for all the color LEDs of an RVR.
+public struct SyncsRVRLEDs : OptionSet, Hashable {
+    public let rawValue: Int
+    
+    public init(rawValue: Int) {
+        self.rawValue = rawValue
+    }
+    
+    public static let headlightRight        = SyncsRVRLEDs(rawValue: 1 << 0)
+    public static let headlightLeft         = SyncsRVRLEDs(rawValue: 1 << 1)
+    public static let statusIndicationLeft  = SyncsRVRLEDs(rawValue: 1 << 2)
+    public static let statusIndicationRight = SyncsRVRLEDs(rawValue: 1 << 3)
+    public static let batteryDoorRear       = SyncsRVRLEDs(rawValue: 1 << 4)
+    public static let batteryDoorFront      = SyncsRVRLEDs(rawValue: 1 << 5)
+    public static let powerButtonFront      = SyncsRVRLEDs(rawValue: 1 << 6)
+    public static let powerButtonRear       = SyncsRVRLEDs(rawValue: 1 << 7)
+    public static let breaklightLeft        = SyncsRVRLEDs(rawValue: 1 << 8)
+    public static let breaklightRight       = SyncsRVRLEDs(rawValue: 1 << 9)
+    
+    public static let headlight: SyncsRVRLEDs = [headlightLeft, headlightRight]
+    public static let statusIndication: SyncsRVRLEDs = [statusIndicationLeft, statusIndicationRight]
+    public static let batteryDoor: SyncsRVRLEDs = [batteryDoorFront, batteryDoorRear]
+    public static let powerButton: SyncsRVRLEDs = [powerButtonFront, powerButtonRear]
+    public static let breaklight: SyncsRVRLEDs = [breaklightLeft, breaklightRight]
+
+    public static let sidelight: SyncsRVRLEDs = [batteryDoor, powerButton]
+
+    public static let all: SyncsRVRLEDs = [ headlight, statusIndication, sidelight, breaklight]
 }
 
 /// Type used when specifying the robots speed in the `Roll` or  `RollForSeconds` APIs.
@@ -344,6 +381,9 @@ public protocol SyncsRequests {
     
     /// Set the brightness of the back LED.
     func setBackLED(to brightness: SyncsBrightness)
+    
+    /// Sets the RVR LEDs to the associated colors.
+    func setRVRLEDs(_ mapping: [SyncsRVRLEDs: SyncsColor])
 
     // Drive
     
@@ -500,6 +540,23 @@ public struct Syncs {
     /// - Parameter brightness: a `SyncsBrightness` value.
     public static let SetBackLED = "SyncsSetBackLED"
     
+    
+    /// Activity to set the given RVR LEDs to the associated colors.
+    ///
+    /// `activity SetRVRLEDs (mapping: [SyncsRVRLEDs: SyncsColor])`
+    ///
+    /// - Parameter mapping: a mapping from `SyncsRVRLEDs` to `SyncsColor`
+    ///
+    /// Example usage:
+    /// ```
+    /// run (Syncs.SetRVRLEDs, [
+    ///         [SyncsRVRLEDs.headlight: SyncsColor.green,
+    ///          SyncsRVRLEDs.breaklight: SyncsColor.red,
+    ///          SyncsRVRLEDs(arrayLiteral: .sidelight, .statusIndication): SyncsColor.blue]
+    ///     ])
+    /// ```
+    public static let SetRVRLEDs = "SyncsSetRVRLEDs"
+
     // Drive
 
     /// Activity to reset the yaw to the opposite direction where the back LED would currently shine.

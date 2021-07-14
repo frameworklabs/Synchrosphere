@@ -7,7 +7,8 @@ extension CBUUID {
     
     // MARK: Services
     
-    static let spheroService = CBUUID(string: "00010001-574f-4f20-5370-6865726f2121")
+    static let apiService = CBUUID(string: "00010001-574f-4f20-5370-6865726f2121")
+    static let antiDosService = CBUUID(string: "00020001-574F-4F20-5370-6865726F2121")
 
     // MARK: Characteristics
     

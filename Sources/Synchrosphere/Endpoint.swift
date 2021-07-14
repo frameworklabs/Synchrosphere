@@ -33,6 +33,7 @@ enum PowerCommand : UInt8, Command {
 /// The commands possible on the io device.
 enum IOCommand : UInt8, Command {
     case setLED = 0x0e
+    case setAllLEDs = 0x1a
 
     var device: Device {
         return .io
@@ -55,6 +56,11 @@ enum SensorCommand : UInt8, Command {
     case resetLocator = 0x13
     case setLocatorFlags = 0x17
     case notifySensorData = 0x02
+    case configureStreamingService = 0x39
+    case startStreamingService = 0x3A
+    case stopStreamingService = 0x3B
+    case clearStreamingService = 0x3C
+    case streamingServiceDataNotify = 0x3D
 
     var device: Device {
         return .sensor
@@ -117,18 +123,18 @@ struct RequestID : Hashable {
 
 /// An abstraction to communicate with a robot.
 protocol Endpoint : SyncsLogging {
-    func send(_ command: Command, with data: [UInt8]) -> RequestID
-    func sendOneway(_ command: Command, with data: [UInt8])
+    func send(_ command: Command, with data: [UInt8], to tid: UInt8) -> RequestID
+    func sendOneway(_ command: Command, with data: [UInt8], to tid: UInt8)
     func hasResponse(for requestID: RequestID, handler: ResponseHandler?) -> Bool
 }
 
 extension Endpoint {
-    func send(_ command: Command) -> RequestID {
-        send(command, with: [])
+    func send(_ command: Command, to tid: UInt8) -> RequestID {
+        send(command, with: [], to: tid)
     }
 
-    func sendOneway(_ command: Command) {
-        sendOneway(command, with: [])
+    func sendOneway(_ command: Command, to tid: UInt8) {
+        sendOneway(command, with: [], to: tid)
     }
 
     func hasResponse(for requestID: RequestID) -> Bool {
@@ -146,15 +152,16 @@ extension Endpoint {
 protocol Request {
     var command: Command { get }
     var data: [UInt8] { get }
+    var tid: UInt8 { get }
 }
 
 extension Endpoint {
     func send(_ request: Request) -> RequestID {
-        send(request.command, with: request.data)
+        send(request.command, with: request.data, to: request.tid)
     }
     
     func sendOneway(_ request: Request) {
-        sendOneway(request.command, with: request.data)
+        sendOneway(request.command, with: request.data, to: request.tid)
     }
 }
 
@@ -162,6 +169,7 @@ extension Endpoint {
 enum ParseError : Error {
     case wrongPayloadSize
     case unknownValue
+    case unexpectedToken
 }
 
 /// Tries to parse a `Response` into a `SyncsBatteryState`.
@@ -176,6 +184,7 @@ func parseGetBatteryStateResponse(_ response: Response) throws -> SyncsBatterySt
 struct SetMainLEDRequest : Request {
     let command: Command = IOCommand.setLED
     let data: [UInt8]
+    let tid: UInt8 = 1
     
     init(color: SyncsColor) {
         data = [0x00, 0x0e, color.red, color.green, color.blue]
@@ -186,9 +195,25 @@ struct SetMainLEDRequest : Request {
 struct SetBackLEDRequest : Request {
     let command: Command = IOCommand.setLED
     let data: [UInt8]
-    
+    let tid: UInt8 = 1
+
     init(brightness: SyncsBrightness) {
         data = [0x00, 0x01, brightness]
+    }
+}
+
+struct SetAllLEDsRequest : Request {
+    let command: Command = IOCommand.setAllLEDs
+    let data: [UInt8]
+    let tid: UInt8 = 1
+
+    init(mask: UInt32, brightness: [SyncsBrightness]) {
+        data = Encoder.encodeUInt32(mask) + brightness
+    }
+    
+    init(mapping: [SyncsRVRLEDs: SyncsColor]) {
+        let (mask, brightness) = ledColorsToBrightness(mapping)
+        self.init(mask:mask, brightness: brightness)
     }
 }
 
@@ -196,7 +221,8 @@ struct SetBackLEDRequest : Request {
 struct RollRequest : Request {
     let command: Command = DriveCommand.roll
     let data: [UInt8]
-    
+    let tid: UInt8 = 2
+
     init(speed: SyncsSpeed, heading: SyncsHeading, dir: SyncsDir) {
         let headingBytes = Encoder.encodeUInt16(heading)
         data = [speed, headingBytes[0], headingBytes[1], dir.rawValue]
@@ -274,7 +300,8 @@ func parseStreamedSampleResponse(_ response: Response, timestamp: UInt64, sensor
 struct StartSensorStreamingRequest : Request {
     let command: Command = SensorCommand.setStreaming
     let data: [UInt8]
-    
+    let tid: UInt8 = 2
+
     init(period: UInt16, sensors: SyncsSensors) {
         let periodBytes = Encoder.encodeUInt16(period)
         let maskBytes = Encoder.encodeUInt32(sensors.mask)
@@ -286,6 +313,95 @@ struct StartSensorStreamingRequest : Request {
 struct StopSensorStreamingRequest : Request {
     let command: Command = SensorCommand.setStreaming
     let data: [UInt8] = [0x00, 0x00, 0, 0x00, 0x00, 0x00, 0x00]
+    let tid: UInt8 = 2
+}
+
+struct ConfigureStreamingServiceRequest : Request {
+    let command: Command = SensorCommand.configureStreamingService
+    let data: [UInt8]
+    let tid: UInt8 = 2
+    
+    init(sensors: SyncsSensors) {
+        var data: [UInt8] = [0x01]
+        if sensors.contains(.yaw) {
+            data +=  [0x00, 0x01, 0x02]
+        }
+        if sensors.contains(.acceleration) {
+            data +=  [0x00, 0x02, 0x02]
+        }
+        if sensors.contains(.location) {
+            data +=  [0x00, 0x06, 0x02]
+        }
+        if sensors.contains(.velocity) {
+            data +=  [0x00, 0x07, 0x02]
+        }
+        self.data = data
+    }
+}
+
+struct StartStreamingServiceRequest : Request {
+    let command: Command = SensorCommand.startStreamingService
+    let data: [UInt8]
+    let tid: UInt8 = 2
+    
+    init(period: UInt16) {
+        data = Encoder.encodeUInt16(period)
+    }
+}
+
+func parseStreamingServiceDataNotifyResponse(_ response: Response, timestamp: UInt64, sensors: SyncsSensors) throws -> SyncsSample {
+    let data = try response.get()
+
+    if data[0] != 0x01 {
+        throw ParseError.unexpectedToken
+    }
+    
+    var index = 1
+    func nextIndex() -> Int {
+        let res = index
+        index += 4
+        return res
+    }
+    func checkHasBytes(_ n: Int) throws {
+        guard data.count >= index + n else { throw ParseError.wrongPayloadSize }
+    }
+    
+    var yaw: Float = 0
+    var ax: Float = 0
+    var ay: Float = 0
+    var x: Float = 0
+    var y: Float = 0
+    var vx: Float = 0
+    var vy: Float = 0
+    
+    if sensors.contains(.yaw) {
+        try checkHasBytes(12)        
+        _ = nextIndex() // pitch
+        _ = nextIndex() // roll
+        yaw = normalize(Decoder.decodeUInt32(data, at: nextIndex()), -180.0, 180.0)
+    }
+    if sensors.contains(.acceleration) {
+        try checkHasBytes(8)
+        ax = normalize(Decoder.decodeUInt32(data, at: nextIndex()), -16.0, 16.0)
+        ay = normalize(Decoder.decodeUInt32(data, at: nextIndex()), -16.0, 16.0)
+        _ = nextIndex() // az
+    }
+    if sensors.contains(.location) {
+        try checkHasBytes(8)
+        x = normalize(Decoder.decodeUInt32(data, at: nextIndex()), -16000.0, 16000.0)
+        y = normalize(Decoder.decodeUInt32(data, at: nextIndex()), -16000.0, 16000.0)
+    }
+    if sensors.contains(.velocity) {
+        try checkHasBytes(8)
+        vx = normalize(Decoder.decodeUInt32(data, at: nextIndex()), -5.0, 5.0)
+        vy = normalize(Decoder.decodeUInt32(data, at: nextIndex()), -5.0, 5.0)
+    }
+
+    return SyncsSample(timestamp: timestamp, sensors: sensors, x: x, y: y, vx: vx, vy: vy, ax: ax, ay: ay, yaw: yaw)
+}
+
+private func normalize(_ val: UInt32, _ newMin: Float, _ newMax: Float) -> Float {
+    return (Float(val) / Float(UInt32.max)) * (newMax - newMin) + newMin
 }
 
 // MARK: - Encoding/Decoding
@@ -312,21 +428,52 @@ private struct Flags : OptionSet {
 
     static let isResponse = Flags(rawValue: 0b0000_0001)
     static let requestResponse = Flags(rawValue: 0b0000_0010)
+    static let requestOnlyErrorResponse = Flags(rawValue: 0b0000_0100)
     static let packetIsActivity = Flags(rawValue: 0b0000_1000)
+    static let packetHasTID = Flags(rawValue: 0b0001_0000)
+    static let packetHasSID = Flags(rawValue: 0b0010_0000)
+}
+
+private enum FrameElement: Int {
+    case did = 0
+    case cid
+    case seq
+    case err
+    case data
+}
+
+private struct FrameElementIndices {
+    private let indices: [Int]
     
-    static let packetIsActivityAndRequestResponse: Flags = [.requestResponse, .packetIsActivity]
+    init(flags: Flags) {
+        let tidOffset = flags.contains(.packetHasTID) ? 1 : 0
+        let sidOffset = flags.contains(.packetHasSID) ? 1 : 0
+        let errOffset = flags.contains(.isResponse) ? 1 : 0
+        indices = [
+            1 + tidOffset + sidOffset,
+            2 + tidOffset + sidOffset,
+            3 + tidOffset + sidOffset,
+            4 + tidOffset + sidOffset,
+            4 + tidOffset + sidOffset + errOffset
+        ]
+    }
+    
+    subscript(element: FrameElement) -> Int {
+        indices[element.rawValue]
+    }
 }
 
 /// A namespace for methods which encode requests into a byte-sequence to be sent to a robot.
 struct Encoder {
-    static func encode(_ command: Command, with payload: [UInt8], sequenceNr: UInt8, wantsResponse: Bool) -> Data {
+    static func encode(_ command: Command, with payload: [UInt8], tid: UInt8, sequenceNr: UInt8, wantsResponse: Bool) -> Data {
         var data = Data(capacity: 0x20)
 
+        var flags: Flags = [.packetIsActivity, .packetHasTID]
         if wantsResponse {
-            data.append(Flags.packetIsActivityAndRequestResponse.rawValue)
-        } else {
-            data.append(Flags.packetIsActivity.rawValue)
+            flags.formUnion(.requestResponse)
         }
+        data.append(flags.rawValue)
+        data.append(tid)
         data.append(command.device.rawValue)
         data.append(command.rawValue)
         data.append(sequenceNr)
@@ -416,19 +563,20 @@ final class Decoder {
                 }
                 
                 let result: Response
-                let isResponse = (data[0] & Flags.isResponse.rawValue) != 0
-                if isResponse {
-                    if data[4] != 0x00 {
-                        result = .failure(RequestError(rawValue: data[4])!)
+                let flags = Flags(rawValue: data[0])
+                let indices = FrameElementIndices(flags: flags)
+                if flags.contains(.isResponse) {
+                    if data[indices[.err]] != 0x00 {
+                        result = .failure(RequestError(rawValue: data[indices[.err]])!)
                     } else {
-                        result = .success(data.subdata(in: 5..<data.count - 1))
+                        result = .success(data.subdata(in: indices[.data]..<data.count - 1))
                     }
                 } else {
-                    result = .success(data.subdata(in: 4..<data.count - 1))
+                    result = .success(data.subdata(in: indices[.data]..<data.count - 1))
                 }
-                guard let device = Device(rawValue: data[1]) else { return }
-                guard let command = device.makeCommand(commandID: data[2]) else { return }
-                handler(command, data[3], result)
+                guard let device = Device(rawValue: data[indices[.did]]) else { return }
+                guard let command = device.makeCommand(commandID: data[indices[.cid]]) else { return }
+                handler(command, data[indices[.seq]], result)
             default:
                 buf.append(ch)
             }

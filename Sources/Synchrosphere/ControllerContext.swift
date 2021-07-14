@@ -54,7 +54,7 @@ final class ControllerContext : SyncsControllerContext, LoggingProviderAccessor 
     init(config: SyncsControllerConfig) {
         self.config = config
         loggingProvider_ = LoggingProvider(config: config)
-        requests_ = Requests(loggingProvider: loggingProvider_)
+        requests_ = Requests(loggingProvider: loggingProvider_, deviceSelector: config.deviceSelector)
     }
     
     func tick() {

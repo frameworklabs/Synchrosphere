@@ -10,7 +10,7 @@ In addition, this project shows how synchronous reactive programming can help to
 
 ## Usage
 
-Synchrosphere tries to make it simple to control Sphero robots. Currently only Sphero Mini is supported.
+Synchrosphere tries to make it simple to control Sphero robots. Currently only Sphero RVR and Sphero Mini are supported.
 
 Start by importing this package into your project. Its dependency to Pappe will be resolved implicitly.
 
@@ -24,10 +24,11 @@ For a usage of the Synchrosphere framework, see also the accompanying project [S
 
 ## Example
 
-Let's create a Sphero Mini controller which moves the robot in a rectangular loop back to its starting spot while blinking green as long as it moves.
+Let's create a Sphero RVR controller which moves the robot in a rectangular loop back to its starting spot while blinking green as long as it moves.
 
 ```Swift
-ctrl = SyncsEngine().makeController { name, ctx in
+let config = SyncsControllerConfig(deviceSelector: .anyRVR)
+ctrl = SyncsEngine().makeController(for: config) { name, ctx in
     activity (name.Main, []) { val in
         cobegin {
             strong {
@@ -58,5 +59,5 @@ Finally, the controller is started explicitly and runs until it finishes. Note t
 
 ## Limitations
 
-- Only Sphero Mini robots are supported right now.
+- Only Sphero RVR and Sphero Mini robots are supported right now.
 - Only a minimal API to control the robots is offered right now.

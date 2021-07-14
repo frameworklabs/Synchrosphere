@@ -29,17 +29,21 @@ final class PeripheralController : NSObject, CBPeripheralDelegate, Endpoint, Log
             activity (name.DiscoverPeripheralCharacteristics_, []) { val in
                 exec {
                     self.context.logInfo("discover services")
-                    self.peripheral.discoverServices(nil)
+                    self.peripheral.discoverServices([.apiService, .antiDosService])
                 }
-                await { self.peripheral.services != nil }
+                await { self.apiService != nil }
                 exec {
-                    self.context.logInfo("discover characteristics")
-                    guard let services = self.peripheral.services else { return }
-                    for service in services {
-                        self.peripheral.discoverCharacteristics(nil, for: service)
-                    }
+                    self.context.logInfo("discover api characteristics")
+                    self.peripheral.discoverCharacteristics([.apiCharacteristic], for: self.apiService!)
                 }
-                await { self.didDiscoverCharacteristics }
+                await { self.apiCharacteristic != nil }
+                `if` { self.context.config.deviceSelector.needsTheForce } then: {
+                    exec {
+                        self.context.logInfo("discover antiDOS characteristics")
+                        self.peripheral.discoverCharacteristics([.antiDoSCharacteristic], for: self.antiDOSService!)
+                    }
+                    await { self.antiDOSCharacteristic != nil }
+                }
             }
             
             activity (name.UnlockPeripheral_, []) { val in
@@ -47,16 +51,18 @@ final class PeripheralController : NSObject, CBPeripheralDelegate, Endpoint, Log
                     self.didWrite = false
                     self.didNotify = false
                 }
-                exec {
-                    self.context.logInfo("use the force")
-                    self.didWrite = false
-                    self.peripheral.writeValue("usetheforce...band".data(using: .ascii)!, for: self.antiDOSCharacteristic, type: CBCharacteristicWriteType.withResponse)
+                `if` { self.context.config.deviceSelector.needsTheForce } then: {
+                    exec {
+                        self.context.logInfo("use the force")
+                        self.didWrite = false
+                        self.peripheral.writeValue("usetheforce...band".data(using: .ascii)!, for: self.antiDOSCharacteristic!, type: .withResponse)
+                    }
+                    await { self.didWrite }
                 }
-                await { self.didWrite }
                 exec {
                     self.context.logInfo("enable notify api")
                     self.didNotify = false
-                    self.peripheral.setNotifyValue(true, for: self.apiCharacteristic)
+                    self.peripheral.setNotifyValue(true, for: self.apiCharacteristic!)
                 }
                 await { self.didNotify }
             }
@@ -67,28 +73,20 @@ final class PeripheralController : NSObject, CBPeripheralDelegate, Endpoint, Log
         self
     }
     
-    private var antiDOSCharacteristic: CBCharacteristic!
-    private var apiCharacteristic: CBCharacteristic!
-
-    private var didDiscoverCharacteristics: Bool {
-        guard let p = peripheral, let ss = p.services else {
-            return false
-        }
-        for s in ss {
-            guard let cs = s.characteristics else {
-                return false
-            }
-            for c in cs {
-                if c.uuid == .antiDoSCharacteristic {
-                    antiDOSCharacteristic = c
-                } else if c.uuid == .apiCharacteristic {
-                    apiCharacteristic = c
-                }
-            }
-        }
-        return true
+    private var apiService: CBService? {
+        peripheral?.services?.first { $0.uuid == CBUUID.apiService }
     }
-    
+    private var antiDOSService: CBService? {
+        peripheral?.services?.first { $0.uuid == CBUUID.antiDosService }
+    }
+
+    private var apiCharacteristic: CBCharacteristic? {
+        apiService?.characteristics?.first { $0.uuid == CBUUID.apiCharacteristic }
+    }
+    private var antiDOSCharacteristic: CBCharacteristic? {
+        antiDOSService?.characteristics?.first { $0.uuid == CBUUID.antiDoSCharacteristic }
+    }
+
     private var didWrite = false
     private var didNotify = false
 
@@ -125,19 +123,15 @@ final class PeripheralController : NSObject, CBPeripheralDelegate, Endpoint, Log
 
     private var sequenceNr: UInt8 = 0
     
-    func send(_ command: Command, with data: [UInt8]) -> RequestID {
+    func send(_ command: Command, with data: [UInt8], to tid: UInt8) -> RequestID {
         let id = RequestID(command: command, sequenceNr: sequenceNr)
-        if peripheral.state == .connected {
-            peripheral.writeValue(Encoder.encode(command, with: data, sequenceNr: sequenceNr, wantsResponse: true), for: apiCharacteristic, type: .withResponse)
-        }
+        write(Encoder.encode(command, with: data, tid: tid, sequenceNr: sequenceNr, wantsResponse: true))
         sequenceNr &+= 1
         return id
     }
     
-    func sendOneway(_ command: Command, with data: [UInt8]) {
-        if peripheral.state == .connected {
-            peripheral.writeValue(Encoder.encode(command, with: data, sequenceNr: sequenceNr, wantsResponse: false), for: apiCharacteristic, type: .withResponse)
-        }
+    func sendOneway(_ command: Command, with data: [UInt8], to tid: UInt8) {
+        write(Encoder.encode(command, with: data, tid: tid, sequenceNr: sequenceNr, wantsResponse: false))
         sequenceNr &+= 1
     }
     
@@ -148,5 +142,29 @@ final class PeripheralController : NSObject, CBPeripheralDelegate, Endpoint, Log
             handler(data)
         }
         return true
-    }    
+    }
+    
+    private func write(_ data: Data) {
+        guard peripheral.state == .connected else { return }
+
+        var from = 0
+        var to = min(20, data.count)
+        while true {
+            let chunk = data.subdata(in: from..<to)
+            peripheral.writeValue(chunk, for: apiCharacteristic!, type: .withoutResponse)
+            
+            guard data.count > to else { break }
+            from = to
+            to = min(to + 20, data.count)
+        }
+    }
+}
+
+private extension SyncsDeviceSelector {
+    var needsTheForce: Bool {
+        switch self {
+        case .anyRVR: return false
+        case .anyMini: return true
+        }
+    }
 }

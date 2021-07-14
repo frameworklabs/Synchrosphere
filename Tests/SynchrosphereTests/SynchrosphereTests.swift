@@ -11,7 +11,7 @@ final class SynchrosphereTests: XCTestCase {
         let inCommand = IOCommand.setLED
         let inPayload: [UInt8] =  [0x00, 0x01, 0xaa]
         let inSeqNr: UInt8 = 42
-        let data = Encoder.encode(inCommand, with: inPayload, sequenceNr: inSeqNr, wantsResponse: true)
+        let data = Encoder.encode(inCommand, with: inPayload, tid: 1, sequenceNr: inSeqNr, wantsResponse: true)
         
         let decoder = Decoder()
         decoder.decode(data) { outCommand, outSeqNr, result in
