@@ -31,18 +31,18 @@ final class PeripheralController : NSObject, CBPeripheralDelegate, Endpoint, Log
                     self.context.logInfo("discover services")
                     self.peripheral.discoverServices([.apiService, .antiDosService])
                 }
-                await { self.apiService != nil }
+                `await` { self.apiService != nil }
                 exec {
                     self.context.logInfo("discover api characteristics")
                     self.peripheral.discoverCharacteristics([.apiCharacteristic], for: self.apiService!)
                 }
-                await { self.apiCharacteristic != nil }
+                `await` { self.apiCharacteristic != nil }
                 `if` { self.context.config.deviceSelector.needsTheForce } then: {
                     exec {
                         self.context.logInfo("discover antiDOS characteristics")
                         self.peripheral.discoverCharacteristics([.antiDoSCharacteristic], for: self.antiDOSService!)
                     }
-                    await { self.antiDOSCharacteristic != nil }
+                    `await` { self.antiDOSCharacteristic != nil }
                 }
             }
             
@@ -57,14 +57,14 @@ final class PeripheralController : NSObject, CBPeripheralDelegate, Endpoint, Log
                         self.didWrite = false
                         self.peripheral.writeValue("usetheforce...band".data(using: .ascii)!, for: self.antiDOSCharacteristic!, type: .withResponse)
                     }
-                    await { self.didWrite }
+                    `await` { self.didWrite }
                 }
                 exec {
                     self.context.logInfo("enable notify api")
                     self.didNotify = false
                     self.peripheral.setNotifyValue(true, for: self.apiCharacteristic!)
                 }
-                await { self.didNotify }
+                `await` { self.didNotify }
             }
         }
     }

@@ -57,7 +57,7 @@ final class MainController : SyncsController {
                     
                     // Wait for start requested.
                     `if` { !self.startRequested } then: {
-                        await { self.startRequested }
+                        `await` { self.startRequested }
                     }
                     exec {
                         self.startRequested = false
@@ -68,7 +68,7 @@ final class MainController : SyncsController {
                         
                         // Wait for Bluetooth availability.
                         `if` { !self.centralManagerController.isBluetoothAvailable } then: {
-                            await { self.centralManagerController.isBluetoothAvailable }
+                            `await` { self.centralManagerController.isBluetoothAvailable }
                         }
                         exec { self.context.setState(.isBluetoothAvailable) }
                         `defer` { self.context.clearState(.isBluetoothAvailable) }
@@ -192,7 +192,7 @@ final class MainController : SyncsController {
                                 val.batteryState = batteryState
                                 self.context.setState(from: batteryState)
                             }
-                            await { self.context.clock.tick(downBy: self.context.config.batteryCheckTicks) }
+                            `await` { self.context.clock.tick(downBy: self.context.config.batteryCheckTicks) }
                         }
                     }
                     strong {
@@ -206,9 +206,9 @@ final class MainController : SyncsController {
                     exec { self.context.logInfo("handling battery too low case") }
                     `repeat` {
                         run (Syncs.SetMainLED, [SyncsColor.red])
-                        await { self.context.clock.tick(downBy: 5) }
+                        `await` { self.context.clock.tick(downBy: 5) }
                         run (Syncs.SetMainLED, [SyncsColor.black])
-                        await { self.context.clock.tick(downBy: 10) }
+                        `await` { self.context.clock.tick(downBy: 10) }
                     }
                 }
             }            

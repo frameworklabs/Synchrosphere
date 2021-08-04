@@ -39,24 +39,24 @@ final class SynchrosphereTests: XCTestCase {
                 }
                 cobegin {
                     strong {
-                        await { true }
-                        await { true }
-                        await { true }
-                        await { true }
+                        pause
+                        pause
+                        pause
+                        pause
                         exec { val.expectedTick = true }
-                        await { true }
+                        pause
                         
                         exec { val.expectedTick = false }
-                        await { true }
-                        await { true }
-                        await { true }
+                        pause
+                        pause
+                        pause
                         exec { val.expectedTick = true }
                     }
                     weak {
-                        await { true } // create offset
+                        pause // create offset
                         Pappe.run (Syncs.WaitTicks, [3])
                         exec { val.actualTick = true }
-                        await { true }
+                        pause
                         
                         exec { val.actualTick = false }
                         Pappe.run (Syncs.WaitSeconds, [1])
@@ -67,7 +67,7 @@ final class SynchrosphereTests: XCTestCase {
                             exec {
                                 XCTAssertEqual(val.actualTick as Bool, val.expectedTick)
                             }
-                            await { true }
+                            pause
                         }
                     }
                 }

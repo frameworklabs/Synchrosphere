@@ -23,7 +23,7 @@ final class SpheroController {
                     self.context.logInfo("Wake")
                     val.id = self.endpoint.send(PowerCommand.wake, to: 1)
                 }
-                await { self.endpoint.hasResponse(for: val.id) }
+                `await` { self.endpoint.hasResponse(for: val.id) }
             }
 
             activity (name.Sleep_, []) { val in
@@ -31,7 +31,7 @@ final class SpheroController {
                     self.context.logInfo("Sleep")
                     val.id = self.endpoint.send(PowerCommand.sleep, to: 1)
                 }
-                await { self.endpoint.hasResponse(for: val.id) }
+                `await` { self.endpoint.hasResponse(for: val.id) }
             }
             
             activity (Syncs.GetBatteryState, []) { val in
@@ -39,7 +39,7 @@ final class SpheroController {
                     self.context.logInfo("GetBatteryState")
                     val.id = self.endpoint.send(PowerCommand.getBatteryState, to: 1)
                 }
-                await { self.endpoint.hasResponse(for: val.id) { response in
+                `await` { self.endpoint.hasResponse(for: val.id) { response in
                     do {
                         let state = try parseGetBatteryStateResponse(response)
                         val.state = state
@@ -66,7 +66,7 @@ final class SpheroController {
                         val.id = self.endpoint.send(SetMainLEDRequest(color: color))
                     }
                 }
-                await { self.endpoint.hasResponse(for: val.id) }
+                `await` { self.endpoint.hasResponse(for: val.id) }
             }
             
             activity (Syncs.SetBackLED, [name.brightness]) { val in
@@ -81,7 +81,7 @@ final class SpheroController {
                         val.id = self.endpoint.send(SetBackLEDRequest(brightness: brightness))
                     }
                 }
-                await { self.endpoint.hasResponse(for: val.id) }
+                `await` { self.endpoint.hasResponse(for: val.id) }
             }
 
             activity (Syncs.SetRVRLEDs, [name.mapping]) { val in
@@ -91,7 +91,7 @@ final class SpheroController {
                     self.context.logInfo("SetRVRLEDs")
                     val.id = self.endpoint.send(SetAllLEDsRequest(mapping: mapping))
                 }
-                await { self.endpoint.hasResponse(for: val.id) }
+                `await` { self.endpoint.hasResponse(for: val.id) }
             }
 
             // MARK: Drive
@@ -101,7 +101,7 @@ final class SpheroController {
                     self.context.logInfo("ResetHeading")
                     val.id = self.endpoint.send(DriveCommand.resetHeading, to: 2)
                 }
-                await { self.endpoint.hasResponse(for: val.id) }
+                `await` { self.endpoint.hasResponse(for: val.id) }
             }
 
             activity (Syncs.Roll, [name.speed, name.heading, name.dir]) { val in
@@ -113,7 +113,7 @@ final class SpheroController {
                     self.context.logInfo("Roll speed: \(speed) heading: \(heading) dir: \(dir)")
                     val.id = self.endpoint.send(RollRequest(speed: speed, heading: heading, dir: dir))
                 }
-                await { self.endpoint.hasResponse(for: val.id) }
+                `await` { self.endpoint.hasResponse(for: val.id) }
             }
             
             activity (Syncs.RollForSeconds, [name.speed, name.heading, name.dir, name.seconds]) { val in
@@ -139,7 +139,7 @@ final class SpheroController {
                     self.context.logInfo("StopRoll")
                     val.id = self.endpoint.send(RollRequest(speed: SyncsSpeed(0), heading: heading, dir: .forward))
                 }
-                await { self.endpoint.hasResponse(for: val.id) }
+                `await` { self.endpoint.hasResponse(for: val.id) }
             }
             
             // MARK: Sensor
@@ -149,7 +149,7 @@ final class SpheroController {
                     self.context.logInfo("ResetLocator")
                     val.id = self.endpoint.send(SensorCommand.resetLocator, to: 2)
                 }
-                await { self.endpoint.hasResponse(for: val.id) }
+                `await` { self.endpoint.hasResponse(for: val.id) }
             }
 
             activity (Syncs.SetLocatorFlags, [name.flags]) { val in
@@ -159,7 +159,7 @@ final class SpheroController {
                     self.context.logInfo("SetLocatorFlags \(flags)")
                     val.id = self.endpoint.send(SensorCommand.setLocatorFlags, with: [flags.rawValue], to: 2)
                 }
-                await { self.endpoint.hasResponse(for: val.id) }
+                `await` { self.endpoint.hasResponse(for: val.id) }
             }
 
             activity (name.SensorStreamerRVR_, [name.frequency, name.sensors], [name.sample]) { val in
@@ -201,10 +201,10 @@ final class SpheroController {
                     self.context.logInfo("SensorStreamer \(frequency)hz \(sensors)")
                     val.id = self.endpoint.send(StartSensorStreamingRequest(period: period, sensors: sensors))
                 }
-                await { self.endpoint.hasResponse(for: val.id) }
+                `await` { self.endpoint.hasResponse(for: val.id) }
                 `defer` { self.context.requests_.stopSensorStreaming() }
                 `repeat` {
-                    await {
+                    `await` {
                         self.endpoint.hasResponse(for: RequestID(command: SensorCommand.notifySensorData, sequenceNr: sensorDataSequenceNr)) { response in
                             do {
                                 let timestamp = self.context.clock.counter

@@ -19,7 +19,7 @@ final class TimerController {
             
             activity (Syncs.WaitTicks, [name.ticks]) { val in
                 exec { val.start = self.context.clock.counter }
-                await { self.context.clock.tick(downBy: val.ticks, from: val.start) }
+                `await` { self.context.clock.tick(downBy: val.ticks, from: val.start) }
             }
 
             activity (Syncs.WaitMilliseconds, [name.millis]) { val in

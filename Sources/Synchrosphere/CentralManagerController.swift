@@ -30,7 +30,7 @@ final class CentralManagerController : NSObject, CBCentralManagerDelegate {
                     self.context.logInfo("stop scanning")
                     self.centralManager.stopScan()
                 }
-                await { self.peripheral != nil && self.peripheral!.matches(val.deviceSelector as SyncsDeviceSelector) }
+                `await` { self.peripheral != nil && self.peripheral!.matches(val.deviceSelector as SyncsDeviceSelector) }
                 exec { self.context.logInfo("got peripheral: \(String(describing: self.peripheral?.name))") }
             }
             
@@ -40,7 +40,7 @@ final class CentralManagerController : NSObject, CBCentralManagerDelegate {
                     guard let peripheral = self.peripheral else { fatalError("peripheral is nil") }
                     self.centralManager.connect(peripheral)
                 }
-                await { self.peripheral?.state == .connected }
+                `await` { self.peripheral?.state == .connected }
             }
 
             activity (name.DisconnectPeripheral_, []) { val in
@@ -49,7 +49,7 @@ final class CentralManagerController : NSObject, CBCentralManagerDelegate {
                     guard let peripheral = self.peripheral else { fatalError("peripheral is nil") }
                     self.centralManager.cancelPeripheralConnection(peripheral)
                 }
-                await { self.peripheral?.state == .disconnected }
+                `await` { self.peripheral?.state == .disconnected }
             }
         }
     }
