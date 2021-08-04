@@ -69,26 +69,26 @@ final class CentralManagerController : NSObject, CBCentralManagerDelegate {
     }
     
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
-        context.tick()
+        context.trigger()
     }
     
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
         self.context.logInfo("did discover \(peripheral)")
         self.peripheral = peripheral
-        context.tick()
+        context.trigger()
     }
     
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         if peripheral == self.peripheral {
             self.context.logInfo("connected")
-            context.tick()
+            context.trigger()
         }
     }
     
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
         if peripheral == self.peripheral {
             context.logInfo("disconnected, reason: \(String(describing: error))")
-            context.tick()
+            context.trigger()
         }
     }
 }

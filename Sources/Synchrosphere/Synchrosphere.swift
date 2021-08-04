@@ -118,6 +118,16 @@ public extension SyncsLogging {
     }
 }
 
+/// The synchronous program can be either purely time triggered or triggered by time and additional events (like replies to requests or incoming sensor information).
+public enum TriggerMode {
+    /// Only the expiring timer at its frequency (`tickFrequency`) will trigger a next step.
+    case timeOnly
+    
+    /// Besides the periodic ticks of the  timer, additional events can trigger a next step. These additional events include replies
+    /// to requests, incoming sensor information or explicit calls to the `trigger()` method available in the `SyncsControllerContext`.
+    case timeAndEvents
+}
+
 /// A collection of data to configure a `SyncsController` to be created.
 public struct SyncsControllerConfig {
     
@@ -145,6 +155,9 @@ public struct SyncsControllerConfig {
     /// to write log messages to a message box in an UI or write it to a file. You should respect the `logLevel` config in this case.
     public var logFunction: ((_ message: String, _ level: SyncsLogLevel) -> Void)?
 
+    /// Specifies what triggers a next step. By default set to time-triggered only.
+    public var triggerMode: TriggerMode = .timeOnly
+    
     /// Specifies the frequency of the clock.
     ///
     /// A synchronous program proceeds in steps which are either triggered by events (like a message response from a robot) or by
@@ -412,10 +425,10 @@ public protocol SyncsControllerContext : SyncsLogging {
     /// Access to the clock associated with the controller.
     var clock: SyncsClock { get }
 
-    /// Triggers a step of the synchronous control program.
+    /// Triggers an additional step of the synchronous control program.
     ///
-    /// - Note: There should be no need to manually trigger a step from normal client code.
-    func tick()
+    /// - Note: Only applies if `triggerMode` is set to `timeAndEvents`.
+    func trigger()
     
     /// Provides the API to send requests to the sphero robot.
     var requests: SyncsRequests { get }

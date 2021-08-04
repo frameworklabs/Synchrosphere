@@ -91,21 +91,21 @@ final class PeripheralController : NSObject, CBPeripheralDelegate, Endpoint, Log
     private var didNotify = false
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
-        context.tick()
+        context.trigger()
     }
     
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
-        context.tick()
+        context.trigger()
     }
     
     func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
         didWrite = true
-        context.tick()
+        context.trigger()
     }
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
         didNotify = true
-        context.tick()
+        context.trigger()
     }
     
     private var responses = [RequestID: Response]()
@@ -117,7 +117,7 @@ final class PeripheralController : NSObject, CBPeripheralDelegate, Endpoint, Log
         decoder.decode(data) { command, sequenceNr, response in
             let id = RequestID(command: command, sequenceNr: sequenceNr)
             self.responses[id] = response
-            self.context.tick()
+            self.context.trigger()
         }
     }
 

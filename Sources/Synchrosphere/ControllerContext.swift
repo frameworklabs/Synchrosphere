@@ -46,6 +46,7 @@ final class ControllerContext : SyncsControllerContext, LoggingProviderAccessor 
             level >= logLevel
         }
     }
+    
     private let loggingProvider_: LoggingProvider
     var loggingProvider: SyncsLogging {
         loggingProvider_
@@ -55,6 +56,14 @@ final class ControllerContext : SyncsControllerContext, LoggingProviderAccessor 
         self.config = config
         loggingProvider_ = LoggingProvider(config: config)
         requests_ = Requests(loggingProvider: loggingProvider_, deviceSelector: config.deviceSelector)
+    }
+    
+    var isTimerRunning = false
+    
+    func trigger() {
+        if config.triggerMode == .timeAndEvents || !isTimerRunning {
+            tick()
+        }
     }
     
     func tick() {

@@ -35,15 +35,19 @@ final class TimerController {
     
     func startTimer() {
         assert(timer == nil)
-        
+                
         timer = DispatchSource.makeTimerSource(queue: context.config.queue ?? DispatchQueue.main)
         let period = 1.0 / Double(context.config.tickFrequency)
         timer?.setEventHandler { [unowned self] in tick() }
         timer?.schedule(deadline: .now() + period, repeating: period, leeway: .nanoseconds(100))
         timer?.activate()
+        
+        context.isTimerRunning = true
     }
     
     func stopTimer() {
+        context.isTimerRunning = false
+        
         timer?.cancel()
         timer = nil
     }

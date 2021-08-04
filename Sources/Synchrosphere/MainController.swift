@@ -223,7 +223,7 @@ final class MainController : SyncsController {
         context.logInfo("start")
         startRequested = true
         stopRequested = false
-        context.tick()
+        context.trigger()
     }
     
     func stop() {
@@ -234,6 +234,6 @@ final class MainController : SyncsController {
         context.logInfo("stop")
         startRequested = false
         stopRequested = true
-        context.tick()
+        context.trigger()
     }    
 }
