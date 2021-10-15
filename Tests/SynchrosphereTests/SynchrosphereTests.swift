@@ -38,7 +38,7 @@ final class SynchrosphereTests: XCTestCase {
                     val.actualTick = false
                 }
                 cobegin {
-                    strong {
+                    with {
                         pause
                         pause
                         pause
@@ -52,7 +52,7 @@ final class SynchrosphereTests: XCTestCase {
                         pause
                         exec { val.expectedTick = true }
                     }
-                    weak {
+                    with (.weak) {
                         pause // create offset
                         Pappe.run (Syncs.WaitTicks, [3])
                         exec { val.actualTick = true }
@@ -62,7 +62,7 @@ final class SynchrosphereTests: XCTestCase {
                         Pappe.run (Syncs.WaitSeconds, [1])
                         exec { val.actualTick = true }
                     }
-                    weak {
+                    with (.weak) {
                         `repeat` {
                             exec {
                                 XCTAssertEqual(val.actualTick as Bool, val.expectedTick)

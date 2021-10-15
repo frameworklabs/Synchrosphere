@@ -119,10 +119,10 @@ final class SpheroController {
             activity (Syncs.RollForSeconds, [name.speed, name.heading, name.dir, name.seconds]) { val in
                 exec { self.context.logInfo("RollForSeconds \(val.seconds as Int)s") }
                 cobegin {
-                    strong {
+                    with {
                         run (Syncs.WaitSeconds, [val.seconds])
                     }
-                    weak {
+                    with (.weak) {
                         `repeat` {
                             run (Syncs.Roll, [val.speed, val.heading, val.dir])
                             run (Syncs.WaitSeconds, [1]) // The control timeout is 2s - so we are safe with 1

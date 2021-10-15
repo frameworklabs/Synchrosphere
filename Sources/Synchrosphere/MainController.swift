@@ -142,11 +142,11 @@ final class MainController : SyncsController {
                                 
                                 // Stop device rolling and streaming data.
                                 cobegin {
-                                    strong {
+                                    with {
                                         run (Syncs.StopRoll, [SyncsHeading(0)])
                                         run (Syncs.WaitSeconds, [1])
                                     }
-                                    strong {
+                                    with {
                                         run (name.StopSensorStreaming_, [])
                                     }
                                 }
@@ -185,7 +185,7 @@ final class MainController : SyncsController {
                     self.context.setState(from: .ok)
                 }
                 cobegin {
-                    weak {
+                    with (.weak) {
                         `repeat` {
                             run (Syncs.GetBatteryState, []) { res in
                                 guard let batteryState = res as? SyncsBatteryState else { return }
@@ -195,7 +195,7 @@ final class MainController : SyncsController {
                             `await` { self.context.clock.tick(downBy: self.context.config.batteryCheckTicks) }
                         }
                     }
-                    strong {
+                    with {
                         when { val.batteryState != SyncsBatteryState.ok } abort: {
                             run (name.Main, [])
                             exec { val.isMainFinished = true }
